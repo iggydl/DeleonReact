@@ -1,0 +1,61 @@
+import { StyleSheet } from 'react-native';
+
+export const loginStyle = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  formHeader: {
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#fff',
+    fontSize: 32,
+    textAlign: 'center',
+  },
+  formContainer: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 20,
+    padding: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    height: 400,
+    top: '25%',
+    opacity: 0.9,
+  },
+  label: {
+    color: 'white',
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: 'bold',
+  },
+  input: {
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    color: 'white',
+  },
+  loginButton: {
+    padding: 15,
+    width: '100%',
+    position: 'absolute',
+    backgroundColor: 'red',
+    bottom: 20,
+    left: 18,
+  },
+  loginText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+});
