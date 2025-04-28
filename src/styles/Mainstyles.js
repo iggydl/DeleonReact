@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 export const registerStyle = StyleSheet.create({
     container: {
@@ -196,3 +198,179 @@ export const loginStyle = StyleSheet.create({
     },
 
 });
+
+    const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#000',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000',
+        padding: 20,
+    },
+    errorText: {
+        color: '#E50914',
+        fontSize: 16,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    retryButton: {
+        backgroundColor: '#E50914',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 5,
+    },
+    retryText: {
+        color: '#FFF',
+        fontSize: 16,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        backgroundColor: '#111',
+        borderBottomWidth: 2,
+        borderBottomColor: '#222',
+    },
+    logoText: {
+        color: '#E50914',
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    headerButton: {
+        marginRight: 15,
+    },
+    headerButtonText: {
+        color: '#FFF',
+        fontSize: 16,
+    },
+    profileButton: {
+        width: 30,
+        height: 30,
+        borderRadius: 5,
+        backgroundColor: '#E50914',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    profileText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    scrollView: {
+        flex: 1,
+    },
+    featuredContainer: {
+        width: '100%',
+        height: height * 0.55,
+        marginBottom: 10,
+    },
+    featuredImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    featuredGradient: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '50%',
+        justifyContent: 'flex-end',
+        padding: 15,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+    },
+    featuredTitle: {
+        color: '#FFF',
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    featuredPrice: {
+        color: '#E50914',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    featuredBrand: {
+        color: '#AAA',
+        fontSize: 16,
+    },
+    categoryRow: {
+        marginBottom: 20,
+    },
+    categoryTitle: {
+        color: '#FFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        marginLeft: 15,
+    },
+    horizontalList: {
+        paddingLeft: 15,
+    },
+    horizontalItem: {
+        marginRight: 10,
+        width: width * 0.28,
+        height: width * 0.42,
+        borderRadius: 4,
+        overflow: 'hidden',
+    },
+    horizontalItemImage: {
+        width: '100%',
+        height: '100%',
+    },
+    itemOverlay: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 5,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+    },
+    itemPrice: {
+        color: '#E50914',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    categoriesList: {
+        paddingBottom: 20,
+    },
+    bottomNav: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        backgroundColor: '#111',
+        paddingVertical: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#222',
+    },
+    navItem: {
+        paddingVertical: 5,
+    },
+    navText: {
+        color: '#AAA',
+        fontSize: 14,
+    },
+    activeNavText: {
+        color: '#FFF',
+        fontWeight: 'bold',
+    },
+    });
+
+export { styles };
