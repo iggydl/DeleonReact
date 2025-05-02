@@ -25,7 +25,7 @@ const HomePageScreen = ({ route, navigation }) => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All Items');
   const [fetchingNextPage, setFetchingNextPage] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [moreProducts, setmoreProducts] = useState(true);
   const [lastListingId, setLastListingId] = useState('');
   const [lastRowValue, setLastRowValue] = useState('');
   const flatListRef = useRef(null);
@@ -34,7 +34,7 @@ const HomePageScreen = ({ route, navigation }) => {
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJuYmYiOjE3NDYxOTI1MTQsImV4cCI6MTc0ODc4NDUxNCwiaXNzIjoiWHVyMzRQMSIsImF1ZCI6Ilh1cjQ0UFAifQ.QD-fcLXtznCfkTIYkbOQfc5fXfxYgw_mOziKWpUHddk";
 
   const fetchProducts = useCallback(async (isNewSearch = false) => {
-    if (fetchingNextPage || (!hasMore && !isNewSearch)) return;
+    if (fetchingNextPage || (!moreProducts && !isNewSearch)) return;
 
     setFetchingNextPage(true);
     try {
@@ -93,7 +93,7 @@ const HomePageScreen = ({ route, navigation }) => {
         setLastRowValue(lastItem.listing_date || lastItem.selling_price?.toString() || '');
       }
       
-      setHasMore(newItems.length > 0);
+      setmoreProducts(newItems.length > 0);
     } catch (err) {
       console.error('Error fetching products:', err);
       setError(err.message || 'Failed to load products');
@@ -103,7 +103,7 @@ const HomePageScreen = ({ route, navigation }) => {
         setLoading(false);
       }
     }
-  }, [lastListingId, lastRowValue, selectedCategory, fetchingNextPage, hasMore, categories, featuredItem]);
+  }, [lastListingId, lastRowValue, selectedCategory, fetchingNextPage, moreProducts, categories, featuredItem]);
 
   
   useEffect(() => {
@@ -112,7 +112,7 @@ const HomePageScreen = ({ route, navigation }) => {
       setXchangeData([]);
       setLastListingId('');
       setLastRowValue('');
-      setHasMore(true);
+      setmoreProducts(true);
       await fetchProducts(true);
     };
 
@@ -258,7 +258,7 @@ const HomePageScreen = ({ route, navigation }) => {
         columnWrapperStyle={gridStyles.gridRow}
         showsVerticalScrollIndicator={false}
         onEndReached={() => {
-          if (hasMore && !fetchingNextPage) {
+          if (moreProducts && !fetchingNextPage) {
             fetchProducts();
           }
         }}
