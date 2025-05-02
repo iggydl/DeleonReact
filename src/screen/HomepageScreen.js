@@ -1,100 +1,141 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { styles } from '../styles/Mainstyles';
 import { gridStyles } from '../styles/GridStyles';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  ActivityIndicator, 
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
   SafeAreaView,
   Image,
   Dimensions,
-  ScrollView,
   StatusBar
 } from 'react-native';
 import axios from 'axios';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const HomePageScreen = ({ route, navigation }) => {
   const { username } = route.params;
   const [loading, setLoading] = useState(true);
   const [xchangeData, setXchangeData] = useState([]);
   const [featuredItem, setFeaturedItem] = useState(null);
-  const [categories, setCategories] = useState({});
+  const [categories, setCategories] = useState({ 'All Items': [] });
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All Items');
+  const [fetchingNextPage, setFetchingNextPage] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [lastListingId, setLastListingId] = useState('');
+  const [lastRowValue, setLastRowValue] = useState('');
+  const flatListRef = useRef(null);
 
   const endpoint = 'https://pk9blqxffi.execute-api.us-east-1.amazonaws.com/xdeal/Xchange';
-  const inputData = {
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjYiLCJuYmYiOjE3NDU2MjYzNTksImV4cCI6MTc0ODIxODM1OSwiaXNzIjoiWHVyMzRQMSIsImF1ZCI6Ilh1cjQ0UFAifQ.qzc-LBSyxuBd7RqMtQFovUo093KtW3p7xHaYUPe0WJ8",
-    version_number: "2.2.6",
-    user_type: 'Xpert',
-    search: "",
-    categories: [],
-    last_listing: "",
-    sort: "",
-    min: "",
-    max: "",
-    last_row_value: "",
-  };
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjYiLCJuYmYiOjE3NDU2MjYzNTksImV4cCI6MTc0ODIxODM1OSwiaXNzIjoiWHVyMzRQMSIsImF1ZCI6Ilh1cjQ0UFAifQ.qzc-LBSyxuBd7RqMtQFovUo093KtW3p7xHaYUPe0WJ8";
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log('Fetching data from API...');
-        const response = await axios.post(endpoint, inputData);
-        console.log('API Response:', response.data);
-        
-        if (response.status === 200 && response.data && Array.isArray(response.data.xchange)) {
-          console.log('Data received:', response.data.xchange.length, 'items');
-          const data = response.data.xchange;
-          
-          if (data.length > 0) {
-            setFeaturedItem(data[0]);
-          }
-          
-          const categoryMap = {};
-          data.forEach(item => {
-            const category = item.category || item.brand || 'Popular Items';
-            if (!categoryMap[category]) {
-              categoryMap[category] = [];
-            }
-            categoryMap[category].push(item);
-          });
-          
-          categoryMap['All Items'] = data;
-          setCategories(categoryMap);
-          setXchangeData(data);
-        } else {
-          setError('No data available or invalid response structure');
-          console.warn('Unexpected response structure:', response.data);
+  const fetchProducts = useCallback(async (isNewSearch = false) => {
+    if (fetchingNextPage || (!hasMore && !isNewSearch)) return;
+
+    setFetchingNextPage(true);
+    try {
+      const params = {
+        token,
+        version_number: "2.2.6",
+        user_type: 'Xpert',
+        categories: selectedCategory !== 'All Items' ? [selectedCategory] : [],
+        last_listing_id: isNewSearch ? '' : lastListingId,
+        last_row_value: isNewSearch ? '' : lastRowValue,
+        search: "",
+        sort: "",
+        min: "",
+        max: ""
+      };
+
+      const response = await axios.post(endpoint, params);
+      const newItems = response.data?.xchange || [];
+
+      if (isNewSearch) {
+        setXchangeData(newItems);
+      } else {
+        setXchangeData(prev => [...prev, ...newItems]);
+      }
+
+     
+      const updatedCategories = JSON.parse(JSON.stringify(categories));
+      if (isNewSearch) {
+        updatedCategories['All Items'] = newItems;
+        Object.keys(updatedCategories).forEach(key => {
+          if (key !== 'All Items') updatedCategories[key] = [];
+        });
+      } else {
+        updatedCategories['All Items'] = [...updatedCategories['All Items'], ...newItems];
+      }
+
+      newItems.forEach(item => {
+        const category = item.category || item.brand || 'Popular Items';
+        if (!updatedCategories[category]) {
+          updatedCategories[category] = [];
         }
-      } catch (err) {
-        setError(err.message);
-        console.error('API Error:', err);
-      } finally {
+        updatedCategories[category].push(item);
+      });
+
+      setCategories(updatedCategories);
+
+   
+      if ((isNewSearch || !featuredItem) && newItems.length > 0) {
+        setFeaturedItem(newItems[0]);
+      }
+
+    
+      if (newItems.length > 0) {
+        const lastItem = newItems[newItems.length - 1];
+        setLastListingId(lastItem.listing_id.toString());
+        setLastRowValue(lastItem.listing_date || lastItem.selling_price?.toString() || '');
+      }
+      
+      setHasMore(newItems.length > 0);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err.message || 'Failed to load products');
+    } finally {
+      setFetchingNextPage(false);
+      if (isNewSearch) {
         setLoading(false);
       }
+    }
+  }, [lastListingId, lastRowValue, selectedCategory, fetchingNextPage, hasMore, categories, featuredItem]);
+
+  
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      setXchangeData([]);
+      setLastListingId('');
+      setLastRowValue('');
+      setHasMore(true);
+      await fetchProducts(true);
     };
 
-    fetchData();
-  }, []);
+    loadData();
+  }, [selectedCategory]);
 
   const renderFeaturedItem = () => {
     if (!featuredItem) return null;
-    
+
     return (
-      <TouchableOpacity style={styles.featuredContainer}>
-        <Image 
-          source={{ uri: featuredItem.item_image || 'https://via.placeholder.com/500' }} 
+      <TouchableOpacity 
+        style={styles.featuredContainer}
+        onPress={() => navigation.navigate('ProductDetail', { product: featuredItem })}
+      >
+        <Image
+          source={{ uri: featuredItem.item_image || 'https://via.placeholder.com/500' }}
           style={styles.featuredImage}
+          resizeMode="cover"
         />
         <View style={styles.featuredGradient}>
           <Text style={styles.featuredTitle}>{featuredItem.model || 'Featured Item'}</Text>
           <Text style={styles.featuredPrice}>
-            {featuredItem.currency} {featuredItem.selling_price?.toFixed(2) || '0.00'}
+            {featuredItem.currency || 'USD'} {featuredItem.selling_price?.toFixed(2) || '0.00'}
           </Text>
           <Text style={styles.featuredBrand}>{featuredItem.brand || featuredItem.category || 'Popular Item'}</Text>
         </View>
@@ -104,15 +145,18 @@ const HomePageScreen = ({ route, navigation }) => {
 
   const renderGridItem = ({ item }) => {
     return (
-      <TouchableOpacity style={gridStyles.gridItem}>
-        <Image 
-          source={{ uri: item.item_image || 'https://via.placeholder.com/300' }} 
+      <TouchableOpacity 
+        style={gridStyles.gridItem}
+        onPress={() => navigation.navigate('ProductDetail', { product: item })}
+      >
+        <Image
+          source={{ uri: item.item_image || 'https://via.placeholder.com/300' }}
           style={gridStyles.gridItemImage}
           resizeMode="cover"
         />
         <View style={gridStyles.gridItemDetails}>
           <Text style={gridStyles.gridItemPrice}>
-            {item.currency} {item.selling_price?.toFixed(2) || '0.00'}
+            {item.currency || 'USD'} {item.selling_price?.toFixed(2) || '0.00'}
           </Text>
           <Text style={gridStyles.gridItemTitle} numberOfLines={1}>
             {item.model || item.name || 'Item'}
@@ -121,9 +165,12 @@ const HomePageScreen = ({ route, navigation }) => {
             {item.brand || item.category || 'Brand'}
           </Text>
           <View style={gridStyles.gridItemSeller}>
-            <View style={gridStyles.sellerAvatar} />
-            <Text style={gridStyles.sellerName}>
-              {item.seller_name || 'Seller'}
+            <Image
+              source={{ uri: item.lister_image || 'https://via.placeholder.com/50' }}
+              style={gridStyles.sellerAvatar}
+            />
+            <Text style={gridStyles.sellerName} numberOfLines={1}>
+              {item.lister_name || 'Seller'}
             </Text>
           </View>
         </View>
@@ -132,61 +179,42 @@ const HomePageScreen = ({ route, navigation }) => {
   };
 
   const renderCategoryButtons = () => {
-    const categoryNames = Object.keys(categories);
+    const categoryNames = Object.keys(categories).filter(name => name !== 'All Items');
     
     return (
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 15 }}
-      >
-        {categoryNames.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={{
-              paddingHorizontal: 15,
-              paddingVertical: 8,
-              marginRight: 10,
-              backgroundColor: selectedCategory === category ? '#E50914' : 'rgba(255,255,255,0.1)',
-              borderRadius: 20,
-            }}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text style={{
-              color: '#FFF',
-              fontWeight: selectedCategory === category ? 'bold' : 'normal',
-            }}>
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    );
-  };
-
-  const renderItemGrid = () => {
-    const itemsToShow = categories[selectedCategory] || [];
-    
-    return (
-      <View style={gridStyles.gridContainer}>
-        <Text style={gridStyles.gridSectionTitle}>{selectedCategory}</Text>
+      <View style={styles.categoryContainer}>
         <FlatList
-          data={itemsToShow}
-          renderItem={renderGridItem}
-          keyExtractor={(item) => item.listing_id?.toString() || Math.random().toString()}
-          numColumns={2}
-          columnWrapperStyle={gridStyles.gridRow}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
+          data={['All Items', ...categoryNames]}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryList}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.categoryButton,
+                selectedCategory === item && styles.activeCategoryButton
+              ]}
+              onPress={() => setSelectedCategory(item)}
+            >
+              <Text style={[
+                styles.categoryText,
+                selectedCategory === item && styles.activeCategoryText
+              ]}>
+                {item}
+              </Text>
+            </TouchableOpacity>
+          )}
         />
       </View>
     );
   };
 
-  if (loading) {
+  if (loading && xchangeData.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E50914" />
+        <Text style={styles.loadingText}>Loading products...</Text>
       </View>
     );
   }
@@ -195,50 +223,83 @@ const HomePageScreen = ({ route, navigation }) => {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => setLoading(true)}>
-          <Text style={styles.retryText}>Retry</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={() => {
+            setError(null);
+            setSelectedCategory('All Items');
+          }}
+        >
+          <Text style={styles.retryText}>Try Again</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  const currentItems = selectedCategory === 'All Items' 
+    ? xchangeData 
+    : categories[selectedCategory] || [];
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#111" />
-      
+
       <View style={styles.header}>
         <Text style={styles.logoText}>NEXPLS</Text>
-        <View style={styles.headerRight}>
-        </View>
+        
       </View>
-      
-      <ScrollView 
-        style={styles.scrollView}
+
+      <FlatList
+        ref={flatListRef}
+        data={currentItems}
+        renderItem={renderGridItem}
+        keyExtractor={(item) => item.listing_id.toString()}
+        numColumns={2}
+        columnWrapperStyle={gridStyles.gridRow}
         showsVerticalScrollIndicator={false}
-      >
-        {renderFeaturedItem()}
-        {renderItemGrid()}
-      </ScrollView>
-      
+        onEndReached={() => {
+          if (hasMore && !fetchingNextPage) {
+            fetchProducts();
+          }
+        }}
+        onEndReachedThreshold={0.2}
+        ListFooterComponent={
+          fetchingNextPage ? (
+            <ActivityIndicator size="small" color="#E50914" style={{ marginVertical: 20 }} />
+          ) : null
+        }
+        ListHeaderComponent={
+          <>
+            {renderFeaturedItem()}
+            {renderCategoryButtons()}
+            <Text style={gridStyles.sectionTitle}>
+              {selectedCategory === 'All Items' ? 'Latest Items' : selectedCategory}
+            </Text>
+          </>
+        }
+        contentContainerStyle={styles.listContent}
+      />
+
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>Search</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>New</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navText}>My List</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => navigation.navigate('LoginScreen')}
-        >
-          <Text style={styles.navText}>Logout</Text>
-        </TouchableOpacity>
+        {['Home', 'Search', 'Sell', 'Watchlist', 'Profile'].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={styles.navItem}
+            onPress={() => {
+              if (tab === 'Search') navigation.navigate('Search');
+              if (tab === 'Profile') navigation.navigate('Profile');
+            }}
+          >
+           
+           
+            <Text style={[
+              styles.navText,
+              tab === 'Home' && styles.activeNavText
+            ]}>
+              {tab}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </SafeAreaView>
   );
