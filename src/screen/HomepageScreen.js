@@ -281,13 +281,13 @@ const HomePageScreen = ({ route, navigation }) => {
       />
 
       <View style={styles.bottomNav}>
-        {['Home', 'Search', 'Sell', 'Watchlist', 'Profile'].map((tab) => (
+        {['Home', 'Search', 'Sell', 'Watchlist', 'Logout'].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={styles.navItem}
             onPress={() => {
               if (tab === 'Search') navigation.navigate('Search');
-              if (tab === 'Profile') navigation.navigate('Profile');
+              if (tab === 'Logout') navigation.navigate('LoginScreen');
             }}
           >
            
