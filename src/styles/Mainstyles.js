@@ -40,22 +40,22 @@ export const registerStyle = StyleSheet.create({
     },
     input: {
         height: 50,
-        borderBottomWidth: 0.5, // Only bottom border
-        borderBottomColor: '#fff', // Set bottom border color
+        borderBottomWidth: 0.5, 
+        borderBottomColor: '#fff', 
         marginBottom: 20,
         paddingHorizontal: 10,
         color: 'white',
-        fontSize: 16, // Slightly larger for better readability
+        fontSize: 16, 
     },
     inputError: {
-        borderBottomColor: 'red', // Red bottom border when there is an error
+        borderBottomColor: 'red', 
     },
 
     errorText: {
-        color: 'white', // White text for error messages
+        color: 'white',
         fontSize: 12,
         marginBottom: 10,
-        textAlign: 'left', // Align error text to the left
+        textAlign: 'left', 
     },
     registerButton: {
         width: '100%',
@@ -138,15 +138,15 @@ export const loginStyle = StyleSheet.create({
     },
     input: {
         height: 50,
-        borderBottomWidth: 0.5, // Only bottom border
-        borderBottomColor: '#fff', // Set bottom border color
+        borderBottomWidth: 0.5, 
+        borderBottomColor: '#fff', 
         marginBottom: 20,
         paddingHorizontal: 10,
         color: 'white',
-        fontSize: 16, // Slightly larger for better readability
+        fontSize: 16, 
     },
     inputError: {
-        borderBottomColor: 'red', // Red bottom border when there is an error
+        borderBottomColor: 'red', 
     },
     errorText: {
         color: 'red',
